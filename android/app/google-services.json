@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "351024628123",
+    "project_id": "rental-e533e",
+    "storage_bucket": "rental-e533e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351024628123:android:ae5a10432551bae8fde13e",
+        "android_client_info": {
+          "package_name": "com.rental.kats"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "351024628123-qnfk39tph19r2qcfpc2e11ldn5nn4qqi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmBLPRBQjDfYlKRhAZiXMseBntUa8ZFoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "351024628123-qnfk39tph19r2qcfpc2e11ldn5nn4qqi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
