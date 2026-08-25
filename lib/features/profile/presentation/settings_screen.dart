@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const _privacyPolicyUrl = 'https://rental-e533e.web.app/privacy-policy';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -61,7 +64,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     activeThumbColor: const Color(0xFFFF4967),
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Push notifications'),
-                    subtitle: const Text('Messages and property activity alerts'),
+                    subtitle: const Text(
+                      'Messages and property activity alerts',
+                    ),
                     onChanged: (value) {
                       setState(() => _pushNotifications = value);
                     },
@@ -72,7 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     activeThumbColor: const Color(0xFFFF4967),
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Email updates'),
-                    subtitle: const Text('Occasional product and feature updates'),
+                    subtitle: const Text(
+                      'Occasional product and feature updates',
+                    ),
                     onChanged: (value) {
                       setState(() => _emailUpdates = value);
                     },
@@ -88,9 +95,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     activeThumbColor: const Color(0xFFFF4967),
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Dark mode'),
-                    subtitle: const Text('Reduce brightness in low-light environments'),
+                    subtitle: const Text(
+                      'Reduce brightness in low-light environments',
+                    ),
                     onChanged: (value) {
                       setState(() => _darkMode = value);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              _SettingsCard(
+                title: 'Legal',
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: const Text('Privacy Policy'),
+                    subtitle: const Text(
+                      'How Rentals App handles your information',
+                    ),
+                    trailing: const Icon(Icons.open_in_new_rounded, size: 20),
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.maybeOf(context);
+                      final opened = await launchUrl(
+                        Uri.parse(_privacyPolicyUrl),
+                        mode: LaunchMode.externalApplication,
+                      );
+                      if (!opened && mounted) {
+                        messenger?.showSnackBar(
+                          const SnackBar(
+                            content: Text('Could not open the Privacy Policy.'),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ],
