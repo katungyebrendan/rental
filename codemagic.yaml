@@ -17,6 +17,11 @@ workflows:
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
+      - name: Install iOS CocoaPods dependencies
+        script: |
+          cd ios
+          pod install --repo-update
+          diff Podfile.lock Pods/Manifest.lock
       - name: Apply uploaded iOS signing profile
         script: xcode-project use-profiles
       - name: Build signed IPA
@@ -25,3 +30,7 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
