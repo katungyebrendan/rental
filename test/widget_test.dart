@@ -31,7 +31,7 @@ void main() {
 
     await tester.tap(find.text('Home').first);
     await tester.pumpAndSettle();
-    expect(find.text('Nhome'), findsWidgets);
+    expect(find.text('HomeSet'), findsWidgets);
   });
 
   testWidgets('Add tab opens property flow', (WidgetTester tester) async {

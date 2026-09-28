@@ -335,7 +335,7 @@ class _BrandHeader extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         const Text(
-          'Nhome',
+          'HomeSet',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
