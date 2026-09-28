@@ -17,7 +17,7 @@ workflows:
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
-      - name: Apply iOS signing profiles
+      - name: Apply uploaded iOS signing profile
         script: xcode-project use-profiles
       - name: Build signed IPA
         script: flutter build ipa --release
