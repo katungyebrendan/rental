@@ -99,6 +99,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       onToggleMode: () =>
                           setState(() => _isLoginMode = !_isLoginMode),
                     ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: const Text('Continue browsing as guest'),
+                    ),
                   ],
                 ),
               ),
@@ -301,7 +307,19 @@ class _AuthFormState extends State<_AuthForm> {
       return;
     }
 
-    _showMessage(widget.isLoginMode ? 'Logged in successfully.' : 'Account created successfully.');
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.isLoginMode
+              ? 'Logged in successfully.'
+              : 'Account created successfully.',
+        ),
+      ),
+    );
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _showMessage(String message) {

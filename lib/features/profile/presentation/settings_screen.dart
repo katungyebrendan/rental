@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/property_store.dart';
+
 const _privacyPolicyUrl = 'https://rental-e533e.web.app/privacy-policy';
 
 class SettingsScreen extends StatefulWidget {
@@ -14,6 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = true;
   bool _emailUpdates = false;
   bool _darkMode = false;
+  bool _deletingAccount = false;
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +136,96 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+              if (PropertyStore.instance.currentUser != null) ...[
+                const SizedBox(height: 10),
+                _SettingsCard(
+                  title: 'Account',
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.delete_forever_outlined,
+                        color: Color(0xFFB3261E),
+                      ),
+                      title: const Text(
+                        'Delete Account',
+                        style: TextStyle(color: Color(0xFFB3261E)),
+                      ),
+                      subtitle: const Text(
+                        'Permanently remove your account and data',
+                      ),
+                      onTap: _deletingAccount ? null : _confirmAccountDeletion,
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmAccountDeletion() async {
+    final passwordController = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This permanently deletes your account, listings and associated data. This cannot be undone.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Confirm password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFB3261E),
+            ),
+            onPressed: () => Navigator.of(
+              dialogContext,
+            ).pop(passwordController.text),
+            child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+    passwordController.dispose();
+
+    if (password == null || password.isEmpty || !mounted) {
+      return;
+    }
+
+    setState(() => _deletingAccount = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final error = await PropertyStore.instance.deleteAccount(password: password);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _deletingAccount = false);
+
+    if (error != null) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Your account has been permanently deleted.')),
     );
   }
 }

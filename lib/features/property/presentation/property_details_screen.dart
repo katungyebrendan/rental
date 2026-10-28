@@ -5,6 +5,7 @@ import '../../../core/property_store.dart';
 import '../../../models/owner_profile.dart';
 import '../../../models/owner_rating_summary.dart';
 import '../../../models/property_listing.dart';
+import '../../auth/presentation/auth_screen.dart';
 
 class PropertyDetailsScreen extends StatelessWidget {
   const PropertyDetailsScreen({super.key, required this.property});
@@ -165,6 +166,14 @@ class PropertyDetailsScreen extends StatelessWidget {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
                       onTap: () async {
+                        if (store.currentUser == null) {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AuthScreen(),
+                            ),
+                          );
+                          return;
+                        }
                         final ok = await store.toggleSaved(property.id);
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -387,6 +396,13 @@ class _OwnerRatingCardState extends State<_OwnerRatingCard> {
   }
 
   Future<void> _submitRating(int rating) async {
+    if (PropertyStore.instance.currentUser == null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const AuthScreen()),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
     final error = await PropertyStore.instance.rateOwner(
       ownerId: widget.ownerId,

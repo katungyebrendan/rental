@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/property_store.dart';
+import '../auth/presentation/auth_screen.dart';
 import '../../models/owner_profile.dart';
 import '../home/presentation/home_screen.dart';
 import '../landlord/presentation/add_edit_property_screen.dart';
@@ -25,7 +26,9 @@ class _MainScreenState extends State<MainScreen> {
     return ValueListenableBuilder<OwnerProfile?>(
       valueListenable: PropertyStore.instance.ownerProfileListenable,
       builder: (context, ownerProfile, __) {
-        final needsProfileCompletion = ownerProfile?.isComplete != true;
+        final store = PropertyStore.instance;
+        final needsProfileCompletion =
+            store.currentUser != null && ownerProfile?.isComplete != true;
 
         return Scaffold(
           body: _bodyForCurrentIndex(
@@ -75,7 +78,15 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _openAddPropertyScreen() async {
-    final profile = PropertyStore.instance.activeOwnerProfile;
+    final store = PropertyStore.instance;
+    if (store.currentUser == null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const AuthScreen()),
+      );
+      return;
+    }
+
+    final profile = store.activeOwnerProfile;
     if (profile == null || !profile.isComplete) {
       if (!mounted) {
         return;

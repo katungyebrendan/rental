@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/property_store.dart';
+import '../../auth/presentation/auth_screen.dart';
 import '../../property/presentation/property_details_screen.dart';
 
 const _savedOrange = Color(0xFFF57C00);
@@ -24,23 +25,42 @@ class SavedScreen extends StatelessWidget {
 
             if (saved.isEmpty) {
               return Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _savedOrangeSoft,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFFFD8B0)),
-                  ),
-                  child: const Text(
-                    'No saved properties yet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111111),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _savedOrangeSoft,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFFFD8B0)),
+                      ),
+                      child: Text(
+                        store.currentUser == null
+                            ? 'Sign in to save properties to your account.'
+                            : 'No saved properties yet',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111111),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                    if (store.currentUser == null) ...[
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AuthScreen(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.login_rounded),
+                        label: const Text('Log In or Sign Up'),
+                      ),
+                    ],
+                  ],
                 ),
               );
             }

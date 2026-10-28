@@ -11,35 +11,37 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rentals_app/app.dart';
 
 void main() {
-  testWidgets('Bottom navigation switches tabs', (WidgetTester tester) async {
+  testWidgets('Guests can browse listings and account tabs', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
 
     expect(find.byType(BottomNavigationBar), findsOneWidget);
-    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Ntinda, Kampala'), findsOneWidget);
 
-    await tester.tap(find.text('Inbox').first);
+    await tester.tap(find.text('Saved').first);
     await tester.pumpAndSettle();
-    expect(find.text('Chats'), findsOneWidget);
-
-    await tester.tap(find.text('Activity').first);
-    await tester.pumpAndSettle();
-    expect(find.text('No saved properties yet'), findsOneWidget);
+    expect(find.text('Sign in to save properties to your account.'), findsOneWidget);
 
     await tester.tap(find.text('Profile').first);
     await tester.pumpAndSettle();
-    expect(find.text('Profile'), findsWidgets);
-
-    await tester.tap(find.text('Home').first);
-    await tester.pumpAndSettle();
-    expect(find.text('HomeSet'), findsWidgets);
+    expect(find.text('Your Profile'), findsOneWidget);
   });
 
-  testWidgets('Add tab opens property flow', (WidgetTester tester) async {
+  testWidgets('Add tab requires sign in and returns to guest browsing', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.tap(find.text('Add').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Add/Edit Property'), findsOneWidget);
+    expect(find.text('Welcome to Rentals'), findsOneWidget);
+    expect(find.text('Add/Edit Property'), findsNothing);
+
+    await tester.tap(find.text('Continue browsing as guest'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ntinda, Kampala'), findsOneWidget);
   });
 }

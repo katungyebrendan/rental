@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rentals_app/features/auth/presentation/auth_screen.dart';
 import 'package:rentals_app/features/main/main_screen.dart' as app_screens;
 
 class MyApp extends StatelessWidget {
@@ -162,22 +160,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          if (snapshot.data == null) {
-            return const AuthScreen();
-          }
-
-          return const app_screens.MainScreen();
-        },
-      ),
+      home: const app_screens.MainScreen(),
     );
   }
 }

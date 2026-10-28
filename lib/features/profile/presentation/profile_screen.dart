@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/property_store.dart';
 import '../../../models/owner_profile.dart';
 import '../../../models/property_listing.dart';
+import '../../auth/presentation/auth_screen.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -24,6 +25,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final store = PropertyStore.instance;
     final user = store.currentUser;
+
+    if (user == null) {
+      return ColoredBox(
+        color: const Color(0xFFFFFBF6),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.person_outline_rounded,
+                    size: 52,
+                    color: _profileOrangeStrong,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Your Profile',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: _profileOrangeStrong,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Sign in to manage your profile, saved properties and listings.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF666666)),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AuthScreen(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.login_rounded),
+                    label: const Text('Log In or Sign Up'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return ColoredBox(
       color: const Color(0xFFFFFBF6),
@@ -85,8 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       .isNotEmpty ==
                                                   true
                                               ? ownerProfile!.nameOrBusiness
-                                              : (user?.email ??
-                                                    'Anonymous user'),
+                                              : (user.email ?? 'Anonymous user'),
                                           style: const TextStyle(
                                             fontSize: 18,
                                             color: Color(0xFF111111),
@@ -159,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                user?.email ?? 'Anonymous user',
+                                user.email ?? 'Anonymous user',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF3D3D3D),

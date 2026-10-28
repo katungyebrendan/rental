@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -206,6 +207,108 @@ class PropertyStore {
     }
   }
 
+  Future<String?> deleteAccount({required String password}) async {
+    final auth = _auth;
+    final user = auth?.currentUser;
+    final firestore = _firestore;
+    final email = user?.email;
+
+    if (user == null || email == null || email.isEmpty) {
+      return 'Please sign in again before deleting your account.';
+    }
+    if (firestore == null) {
+      return 'Account data is unavailable right now. Please try again later.';
+    }
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      final userRef = firestore.collection('users').doc(user.uid);
+      final savedProperties = await userRef
+          .collection('saved_properties')
+          .get();
+      await _deleteDocuments(savedProperties.docs.map((doc) => doc.reference));
+
+      final ownerRatings = await userRef.collection('ratings').get();
+      await _deleteDocuments(ownerRatings.docs.map((doc) => doc.reference));
+
+      final submittedRatings = await firestore
+          .collectionGroup('ratings')
+          .where('ratedByUserId', isEqualTo: user.uid)
+          .get();
+      await _deleteDocuments(submittedRatings.docs.map((doc) => doc.reference));
+
+      final ownedProperties = await firestore
+          .collection('properties')
+          .where('ownerId', isEqualTo: user.uid)
+          .get();
+      await _deleteDocuments(ownedProperties.docs.map((doc) => doc.reference));
+      await userRef.delete();
+
+      final storage = FirebaseStorage.instance;
+      await _deleteStorageContents(
+        storage.ref().child('images/${user.uid}'),
+      );
+      await _deleteStorageContents(
+        storage.ref().child('profile_photos/${user.uid}'),
+      );
+
+      final preferences = _preferences;
+      if (preferences != null) {
+        await preferences.remove(_savedKeyForUser(user.uid));
+        for (final key in preferences.getKeys().where(
+          (key) => key.startsWith(_ownerRatingsKeyPrefix),
+        )) {
+          final ownerId = key.substring(_ownerRatingsKeyPrefix.length);
+          final ratings = _readLocalOwnerRatings(ownerId);
+          if (ratings.remove(user.uid) != null) {
+            await preferences.setString(key, jsonEncode(ratings));
+          }
+        }
+      }
+
+      final nextProfiles = Map<String, OwnerProfile>.from(
+        _ownerProfilesByUserId.value,
+      )..remove(user.uid);
+      _ownerProfilesByUserId.value = nextProfiles;
+      await user.delete();
+      return null;
+    } on FirebaseAuthException catch (error) {
+      return error.message ?? 'Could not delete your account. Please try again.';
+    } catch (error) {
+      debugPrint('Failed to delete account data: $error');
+      return 'Could not complete account deletion. Please try again.';
+    }
+  }
+
+  Future<void> _deleteDocuments(
+    Iterable<DocumentReference<Map<String, dynamic>>> references,
+  ) async {
+    final documents = references.toList(growable: false);
+    for (var start = 0; start < documents.length; start += 450) {
+      final batch = _firestore!.batch();
+      final end = (start + 450).clamp(0, documents.length);
+      for (final reference in documents.sublist(start, end)) {
+        batch.delete(reference);
+      }
+      await batch.commit();
+    }
+  }
+
+  Future<void> _deleteStorageContents(Reference reference) async {
+    final result = await reference.listAll();
+    for (final item in result.items) {
+      await item.delete();
+    }
+    for (final prefix in result.prefixes) {
+      await _deleteStorageContents(prefix);
+    }
+  }
+
   Future<void> _activateUser(String userId) async {
     _activeUserId = userId;
 
@@ -246,6 +349,10 @@ class PropertyStore {
   }
 
   Future<bool> toggleSaved(String propertyId) async {
+    if (_auth?.currentUser == null) {
+      return false;
+    }
+
     final next = Map<String, Set<String>>.from(_savedByUser.value);
     final userSaved = Set<String>.from(next[_activeUserId] ?? <String>{});
     final wasSaved = userSaved.contains(propertyId);
@@ -612,10 +719,11 @@ class PropertyStore {
 
   Future<bool> addProperty(PropertyListing property) async {
     final authenticatedUserId = _auth?.currentUser?.uid;
+    if (authenticatedUserId == null || authenticatedUserId.isEmpty) {
+      return false;
+    }
     final effectiveOwnerId =
-        authenticatedUserId == null || authenticatedUserId.isEmpty
-        ? _activeUserId
-        : authenticatedUserId;
+        authenticatedUserId;
     final userOwnedProperty = property.ownerId.isEmpty
         ? property.copyWith(ownerId: effectiveOwnerId)
         : property;
